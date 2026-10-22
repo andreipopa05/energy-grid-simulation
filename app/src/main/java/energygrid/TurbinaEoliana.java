@@ -1,6 +1,5 @@
 package energygrid;
 
-import java.text.DecimalFormat;
 
 public class TurbinaEoliana extends ProducatorEnergie{
 
@@ -17,19 +16,8 @@ public class TurbinaEoliana extends ProducatorEnergie{
     }
 
     @Override
-    public String toString() {
-        DecimalFormat df = new DecimalFormat("#.00");
-
-        String formatPutere = df.format(this.getPutereSpecifica());
-
-        String detalii = "Producator " + this.getId() + " (TurbinaEoliana) - PutereBaza: " + formatPutere + " - Status: ";
-
-        if (this.getStatusOperational()) {
-            detalii = detalii.concat("Operational");
-        } else {
-            detalii = detalii.concat("Defect");
-        }
-
-        return detalii;
+    protected String getTypeName() {
+        return "TurbinaEoliana";
     }
+
 }

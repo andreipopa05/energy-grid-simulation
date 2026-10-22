@@ -1,7 +1,5 @@
 package energygrid;
 
-import java.text.DecimalFormat;
-
 public class PanouSolar extends ProducatorEnergie{
 
     protected PanouSolar(String id, double putereSpecifica) {
@@ -16,19 +14,8 @@ public class PanouSolar extends ProducatorEnergie{
     }
 
     @Override
-    public String toString() {
-        DecimalFormat df = new DecimalFormat("#.00");
-
-        String formatPutere = df.format(this.getPutereSpecifica());
-
-        String detalii = "Producator " + this.getId() + " (PanouSolar) - PutereBaza: " + formatPutere + " - Status: ";
-
-        if (this.getStatusOperational()) {
-            detalii = detalii.concat("Operational");
-        } else {
-            detalii = detalii.concat("Defect");
-        }
-
-        return detalii;
+    protected String getTypeName() {
+        return "PanouSolar";
     }
+
 }

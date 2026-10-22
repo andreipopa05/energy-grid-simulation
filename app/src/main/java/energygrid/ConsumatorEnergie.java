@@ -1,5 +1,7 @@
 package energygrid;
 
+import java.text.DecimalFormat;
+
 public abstract class ConsumatorEnergie extends ComponentaRetea{
     private final double cerereEnergie;
     private int prioritate;
@@ -43,8 +45,17 @@ public abstract class ConsumatorEnergie extends ComponentaRetea{
         this.esteAlimentat = false;
     }
 
+    // Numele consumatorului
+    protected abstract String getTypeName();
+
+    @Override
     public String toString() {
-        return super.toString();
+        DecimalFormat df = new DecimalFormat("0.00");
+        String status = this.getEsteAlimentat() ? "Alimentat" : "Decuplat";
+
+        return "Consumator " + this.getId() + " (" + this.getTypeName() + ") - Cerere: "
+                + df.format(this.getCerereTotala()) + " - Prioritate: " + this.getPrioritate()
+                + " - Status: " + status;
     }
 
 }

@@ -1,4 +1,5 @@
 package energygrid;
+import java.text.DecimalFormat;
 
 public abstract class ProducatorEnergie extends ComponentaRetea{
     private final double putereSpecifica;
@@ -14,8 +15,16 @@ public abstract class ProducatorEnergie extends ComponentaRetea{
 
     public abstract double calculeazaProductie(double factorExtern);
 
+    // Numele producatorului
+    protected abstract String getTypeName();
+
+    @Override
     public String toString() {
-        return super.toString();
+        DecimalFormat df = new DecimalFormat("#.00");
+        String status = this.getStatusOperational() ? "Operational" : "Defect";
+
+        return "Producator " + this.getId() + " (" + this.getTypeName() + ") - PutereBaza: "
+                + df.format(this.getPutereSpecifica()) + " - Status: " + status;
     }
 
 }
