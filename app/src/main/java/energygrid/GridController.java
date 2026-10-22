@@ -4,14 +4,14 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 public class GridController {
-    final List<ConsumatorEnergie> consumatori = new ArrayList<>();
-    final List<ProducatorEnergie> producatori = new ArrayList<>();
+    private final List<ConsumatorEnergie> consumatori = new ArrayList<>();
+    private final List<ProducatorEnergie> producatori = new ArrayList<>();
     private final List<Baterie> baterii = new ArrayList<>();
-    final List<ComponentaRetea> componente = new ArrayList<>();
+    private final List<ComponentaRetea> componente = new ArrayList<>();
     private final List<ConsumatorEnergie> decuplati = new ArrayList<>();
-    final List<String> evenimente = new ArrayList<>();
-    boolean esteInBlackout = false;
-    private int TickContor = 0;
+    private final List<String> evenimente = new ArrayList<>();
+    private boolean esteInBlackout = false;
+    private int tickContor = 0;
 
     public boolean isInBlackout() {
         return esteInBlackout;
@@ -55,136 +55,123 @@ public class GridController {
     }
 
     public void simuleazaTick(double factorSoare, double factorVant) {
-        TickContor++;
+        tickContor++;
         decuplati.clear();
 
-        // Tick-ul ruleaza pana la blackout sau caz satisfacator
-        while (!esteInBlackout) {
-            double productieTotala = 0;
-            double cerereTotala = 0;
-            double delta;
+        // Daca reteaua e deja in blackout, simularea nu mai continua
+        if (esteInBlackout) {
+            return;
+        }
 
-            // Cuplez consumatorii
-            for (ConsumatorEnergie cons : consumatori) {
-                cons.cupleazaLaRetea();
-            }
+        // Cuplez consumatorii
+        for (ConsumatorEnergie cons : consumatori) {
+            cons.cupleazaLaRetea();
+        }
 
-            // Calculez productia totala
-            for (ProducatorEnergie prod : producatori) {
-                    if (prod instanceof PanouSolar) {
-                        productieTotala += prod.calculeazaProductie(factorSoare);
-                    } else if (prod instanceof TurbinaEoliana) {
-                        productieTotala += prod.calculeazaProductie(factorVant);
-                    } else {
-                        productieTotala += prod.calculeazaProductie(0);
-                    }
-            }
-
-            // Calculez cererea totala
-            for (ConsumatorEnergie cons : consumatori) {
-                cerereTotala += cons.getCerereCurenta();
-            }
-
-            delta = productieTotala - cerereTotala;
-
-            // Verific in ce caz ma aflu
-            if (delta >= 0) {
-                // Surplus
-
-                for (Baterie bat : baterii) {
-                    delta = bat.incarca(delta);
-                }
-
-                getOutputSuccess(productieTotala, cerereTotala, baterii);
-
-                break;
-
-            } else if (delta < 0){
-                // Deficit
-
-                double deficit = -delta;
-
-                for(Baterie bat : baterii) {
-                    double energieDeLaBaterie = bat.descarca(deficit);
-                    deficit -= energieDeLaBaterie;
-                }
-
-                if (deficit <= 0) {
-                    getOutputSuccess(productieTotala, cerereTotala, baterii);
-                    break;
-                }
-
-                if (deficit > 0) {
-                    // Triage
-
-                    for (int i = 0; i < consumatori.size() - 1; i++) {
-                        for (int j = i + 1; j < consumatori.size(); j++) {
-                            if (consumatori.get(i).getPrioritate() < consumatori.get(j).getPrioritate()) {
-                                Collections.swap(consumatori, i, j);
-                            }
-                        }
-                    }
-
-                    for (ConsumatorEnergie cons : consumatori) {
-                        if (cons.getPrioritate() > 1 && deficit > 0) {
-                            decuplati.add(cons);
-                            deficit -= cons.getCerereCurenta();
-                            cons.decupleazaDeLaRetea();
-                        }
-                    }
-
-                    if (deficit <= 0) {
-                        String eveniment = "Tick " + TickContor + ": Deficit - Decuplat ";
-
-                        for (int i = 0; i < decuplati.size(); i++) {
-                            eveniment = eveniment.concat(decuplati.get(i).getId());
-                            if (i < decuplati.size() - 1) {
-                                eveniment = eveniment.concat(" ");
-                            }
-                        }
-
-                        evenimente.add(eveniment);
-
-                        String output = getOutput(cerereTotala, productieTotala);
-                        System.out.println(output);
-
-                        break;
-                    }
-
-                    if (deficit > 0) {
-                        // Blackout
-
-                        String eveniment = "Tick " + TickContor + ": BLACKOUT! SIMULARE OPRITA.";
-
-                        evenimente.add(eveniment);
-                        System.out.println("BLACKOUT! SIMULARE OPRITA.");
-
-                        esteInBlackout = true;
-                    }
-                }
+        // Calculez productia totala
+        double productieTotala = 0;
+        for (ProducatorEnergie prod : producatori) {
+            if (prod instanceof PanouSolar) {
+                productieTotala += prod.calculeazaProductie(factorSoare);
+            } else if (prod instanceof TurbinaEoliana) {
+                productieTotala += prod.calculeazaProductie(factorVant);
+            } else {
+                productieTotala += prod.calculeazaProductie(0);
             }
         }
 
+        // Calculez cererea totala
+        double cerereTotala = 0;
+        for (ConsumatorEnergie cons : consumatori) {
+            cerereTotala += cons.getCerereCurenta();
+        }
+
+        double delta = productieTotala - cerereTotala;
+
+        // Verific in ce caz ma aflu
+        if (delta >= 0) {
+            // Surplus
+            incarcaBaterii(delta);
+            System.out.println(getOutput(cerereTotala, productieTotala));
+            return;
+        }
+
+        // Deficit
+        double deficit = descarcaBaterii(-delta);
+        if (deficit <= 0) {
+            System.out.println(getOutput(cerereTotala, productieTotala));
+            return;
+        }
+
+        // Triage
+        deficit = decupleazaConsumatori(deficit);
+        if (deficit <= 0) {
+            evenimente.add("Tick " + tickContor + ": Deficit - Decuplat " + String.join(" ", getIdDecuplati()));
+            System.out.println(getOutput(cerereTotala, productieTotala));
+            return;
+        }
+
+        // Blackout
+        evenimente.add("Tick " + tickContor + ": BLACKOUT! SIMULARE OPRITA.");
+        System.out.println("BLACKOUT! SIMULARE OPRITA.");
+        esteInBlackout = true;
     }
 
-    // Metoda pentru a genera feedback-ul unui  output cu succes
-    private static void getOutputSuccess(double productieTotala, double cerereTotala, List<Baterie> baterii) {
-        double statusBaterii = 0;
+    // Ofer surplusul bateriilor, pe rand; ce nu incape se pierde
+    private void incarcaBaterii(double surplus) {
+        double ramas = surplus;
 
         for (Baterie bat : baterii) {
-            statusBaterii += bat.getEnergieStocata();
+            ramas = bat.incarca(ramas);
         }
-
-        DecimalFormat df = new DecimalFormat("0.00");
-
-        String formatStatus = df.format(statusBaterii);
-        String formatCerere = df.format(cerereTotala);
-        String formatProductie = df.format(productieTotala);
-
-        System.out.println("TICK: Productie " + formatProductie + ", Cerere " + formatCerere + ". Baterii: " + formatStatus + " MW. Decuplati: []");
     }
 
-    // Metoda pentru a genera feedback pentru un output fara succes
+    // Iau energie din baterii; intorc deficitul care ramane neacoperit
+    private double descarcaBaterii(double deficit) {
+        double ramas = deficit;
+
+        for (Baterie bat : baterii) {
+            ramas -= bat.descarca(ramas);
+        }
+
+        return ramas;
+    }
+
+    // Decuplez consumatorii (intai prioritatea 3, apoi 2, niciodata 1) pana se
+    // acopera deficitul; intorc deficitul care ramane neacoperit
+    private double decupleazaConsumatori(double deficit) {
+        double ramas = deficit;
+
+        for (int i = 0; i < consumatori.size() - 1; i++) {
+            for (int j = i + 1; j < consumatori.size(); j++) {
+                if (consumatori.get(i).getPrioritate() < consumatori.get(j).getPrioritate()) {
+                    Collections.swap(consumatori, i, j);
+                }
+            }
+        }
+
+        for (ConsumatorEnergie cons : consumatori) {
+            if (cons.getPrioritate() > 1 && ramas > 0) {
+                decuplati.add(cons);
+                ramas -= cons.getCerereCurenta();  // Citesc cererea inainte de decuplare
+                cons.decupleazaDeLaRetea();
+            }
+        }
+
+        return ramas;
+    }
+
+    private List<String> getIdDecuplati() {
+        List<String> id = new ArrayList<>();
+
+        for (ConsumatorEnergie cons : decuplati) {
+            id.add(cons.getId());
+        }
+
+        return id;
+    }
+
+    // Metoda pentru a genera feedback-ul unui output (lista decuplatilor e goala daca nu s-a decuplat nimeni)
     private String getOutput(double cerereTotala, double productieTotala) {
         double statusBaterii = 0;
 
@@ -194,22 +181,8 @@ public class GridController {
 
         DecimalFormat df = new DecimalFormat("0.00");
 
-        String formatStatus = df.format(statusBaterii);
-        String formatCerere = df.format(cerereTotala);
-        String formatProductie = df.format(productieTotala);
-
-        String output = "TICK: Productie " + formatProductie + ", Cerere " + formatCerere + ". Baterii: " + formatStatus + " MW. Decuplati: [";
-
-        for (int i = 0; i < decuplati.size(); i++) {
-            output = output.concat(decuplati.get(i).getId());
-
-            if (i < decuplati.size() - 1) {
-                output = output.concat(", ");
-            }
-        }
-
-        output = output.concat("]");
-
-        return output;
+        return "TICK: Productie " + df.format(productieTotala) + ", Cerere " + df.format(cerereTotala)
+                + ". Baterii: " + df.format(statusBaterii) + " MW. Decuplati: ["
+                + String.join(", ", getIdDecuplati()) + "]";
     }
 }
