@@ -1,7 +1,8 @@
 package energygrid;
 
-import java.io.*;
-import java.util.*;
+import java.io.InputStream;
+import java.util.Locale;
+import java.util.Scanner;
 
 public class App {
     private final Scanner scanner;
@@ -15,7 +16,12 @@ public class App {
         GridController controller = new GridController();
 
         while (scanner.hasNextLine()) {
-            String comanda = scanner.nextLine();
+            String comanda = scanner.nextLine().trim();
+
+            // Liniile goale se ignora
+            if (comanda.isEmpty()) {
+                continue;
+            }
 
             // Tratarea fiecarei comenzi in parte si verificarea validitatii comenzii
             if (comanda.startsWith("0")) {
@@ -253,6 +259,7 @@ public class App {
     }
 
     public static void main(String[] args) {
+        Locale.setDefault(Locale.US);  // Acelasi separator zecimal pe orice calculator
         App app = new App(System.in);
         app.run();
     }
