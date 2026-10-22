@@ -125,6 +125,14 @@ Simulatorul se inchide.
 - **Tick 2:** production drops to 10 W. Even disconnecting all lower-priority consumers is not enough to supply life support, so the grid goes into blackout.
 - **Tick 3** is refused because of the blackout.
 
+## Tests
+
+```bash
+./gradlew test
+```
+
+The tests cover the batteries (charging and discharging within capacity), each producer type, and complete command scenarios with the exact expected output: charging and using a battery, triage and blackout, the reset of the disconnected list at every tick, producers with different factors, and invalid input.
+
 ## Limitations
 
 - Class names, command words and console messages are in Romanian; the command format (numeric codes) is kept from the original specification.
