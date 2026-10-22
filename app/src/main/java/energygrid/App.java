@@ -1,4 +1,4 @@
-package EnergyGrid;
+package energygrid;
 
 import java.io.*;
 import java.util.*;

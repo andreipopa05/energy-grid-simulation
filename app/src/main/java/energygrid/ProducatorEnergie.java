@@ -1,4 +1,4 @@
-package EnergyGrid;
+package energygrid;
 
 public abstract class ProducatorEnergie extends ComponentaRetea{
     private final double putereSpecifica;

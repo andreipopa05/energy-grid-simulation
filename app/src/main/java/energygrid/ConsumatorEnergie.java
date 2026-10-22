@@ -1,4 +1,4 @@
-package EnergyGrid;
+package energygrid;
 
 public abstract class ConsumatorEnergie extends ComponentaRetea{
     private final double cerereEnergie;

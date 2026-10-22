@@ -1,4 +1,4 @@
-package EnergyGrid;
+package energygrid;
 
 public abstract class ComponentaRetea {
     private final String id;

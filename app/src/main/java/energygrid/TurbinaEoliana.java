@@ -1,10 +1,10 @@
-package EnergyGrid;
+package energygrid;
 
 import java.text.DecimalFormat;
 
-public class PanouSolar extends ProducatorEnergie{
+public class TurbinaEoliana extends ProducatorEnergie{
 
-    protected PanouSolar(String id, double putereSpecifica) {
+    protected TurbinaEoliana(String id, double putereSpecifica) {
         super(id, putereSpecifica);
     }
 
@@ -12,6 +12,7 @@ public class PanouSolar extends ProducatorEnergie{
         if (!this.getStatusOperational()) {
             return 0;
         }
+
         return factorExtern * this.getPutereSpecifica();
     }
 
@@ -21,7 +22,7 @@ public class PanouSolar extends ProducatorEnergie{
 
         String formatPutere = df.format(this.getPutereSpecifica());
 
-        String detalii = "Producator " + this.getId() + " (PanouSolar) - PutereBaza: " + formatPutere + " - Status: ";
+        String detalii = "Producator " + this.getId() + " (TurbinaEoliana) - PutereBaza: " + formatPutere + " - Status: ";
 
         if (this.getStatusOperational()) {
             detalii = detalii.concat("Operational");
