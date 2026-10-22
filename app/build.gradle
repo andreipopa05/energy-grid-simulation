@@ -48,4 +48,7 @@ tasks.withType(Test) {
     }
 }
 
+tasks.named('run') {
+    standardInput = System.in
+}
 
