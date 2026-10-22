@@ -1,24 +1,62 @@
-package Tema1;
+package EnergyGrid;
 
 import java.text.DecimalFormat;
 import java.util.*;
 
 public class GridController {
-    ArrayList<ConsumatorEnergie> consumatori = new ArrayList<>();
-    ArrayList<ProducatorEnergie> producatori = new ArrayList<>();
-    ArrayList<Baterie> baterii = new ArrayList<>();
-    ArrayList<ComponentaRetea> componente = new ArrayList<>();
-    ArrayList<ConsumatorEnergie> decuplati = new ArrayList<>();
-    ArrayList<String> evenimente = new ArrayList<>();
+    final List<ConsumatorEnergie> consumatori = new ArrayList<>();
+    final List<ProducatorEnergie> producatori = new ArrayList<>();
+    private final List<Baterie> baterii = new ArrayList<>();
+    final List<ComponentaRetea> componente = new ArrayList<>();
+    private final List<ConsumatorEnergie> decuplati = new ArrayList<>();
+    final List<String> evenimente = new ArrayList<>();
     boolean esteInBlackout = false;
-    int TickContor = 0;
+    private int TickContor = 0;
 
-    public void includeComponenta(ComponentaRetea cmp) {
-        componente.add(cmp);
+    public boolean isInBlackout() {
+        return esteInBlackout;
+    }
+
+    public void addEvent(String message) {
+        evenimente.add(message);
+    }
+
+    public List<String> getEvents() {
+        return Collections.unmodifiableList(evenimente);
+    }
+
+    public List<ComponentaRetea> getComponents() {
+        return Collections.unmodifiableList(componente);
+    }
+
+    public void addProducer(ProducatorEnergie producer) {
+        producatori.add(producer);
+        componente.add(producer);
+    }
+
+    public void addConsumer(ConsumatorEnergie consumer) {
+        consumatori.add(consumer);
+        componente.add(consumer);
+    }
+
+    public void addBattery(Baterie battery) {
+        baterii.add(battery);
+        componente.add(battery);
+    }
+
+    // Intoarce componenta cu id-ul dat sau null
+    public ComponentaRetea findComponent(String id) {
+        for (ComponentaRetea cmp : componente) {
+            if (cmp.getId().equals(id)) {
+                return cmp;
+            }
+        }
+        return null;
     }
 
     public void simuleazaTick(double factorSoare, double factorVant) {
         TickContor++;
+        decuplati.clear();
 
         // Tick-ul ruleaza pana la blackout sau caz satisfacator
         while (!esteInBlackout) {
@@ -130,7 +168,7 @@ public class GridController {
     }
 
     // Metoda pentru a genera feedback-ul unui  output cu succes
-    private static void getOutputSuccess(double productieTotala, double cerereTotala, ArrayList<Baterie> baterii) {
+    private static void getOutputSuccess(double productieTotala, double cerereTotala, List<Baterie> baterii) {
         double statusBaterii = 0;
 
         for (Baterie bat : baterii) {

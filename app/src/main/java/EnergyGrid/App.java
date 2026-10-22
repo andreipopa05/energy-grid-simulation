@@ -1,14 +1,10 @@
-package Tema1;
+package EnergyGrid;
 
-import javax.swing.*;
 import java.io.*;
-import java.sql.SQLOutput;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.text.*;
 
 public class App {
-    private Scanner scanner;
+    private final Scanner scanner;
 
     public App(InputStream input) {
         this.scanner = new Scanner(input);
@@ -24,9 +20,9 @@ public class App {
             // Tratarea fiecarei comenzi in parte si verificarea validitatii comenzii
             if (comanda.startsWith("0")) {
 
-                if (controller.esteInBlackout) {
+                if (controller.isInBlackout()) {
                     System.out.println("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
-                    controller.evenimente.add("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                    controller.addEvent("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
                 } else {
                     String[] sectiuneComanda = comanda.split(" ");
 
@@ -44,9 +40,8 @@ public class App {
                                 System.out.println("EROARE: Putere invalida");
                             } else {
                                 ProducatorEnergie pr = getPr(sectiuneComanda);
-                                controller.producatori.add(pr);
+                                controller.addProducer(pr);
                                 System.out.println("S-a adaugat producatorul " + pr.getId() + " de tip " + sectiuneComanda[1]);
-                                controller.includeComponenta(pr);
                             }
 
                         }
@@ -58,9 +53,9 @@ public class App {
                 }
             } else if (comanda.startsWith("1")) {
 
-                if (controller.esteInBlackout) {
+                if (controller.isInBlackout()) {
                     System.out.println("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
-                    controller.evenimente.add("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                    controller.addEvent("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
                 } else {
                     String[] sectiuneComanda = comanda.split(" ");
 
@@ -78,9 +73,8 @@ public class App {
                                 System.out.println("EROARE: Cerere putere invalida");
                             } else {
                                 ConsumatorEnergie cs = getCs(sectiuneComanda);
-                                controller.consumatori.add(cs);
+                                controller.addConsumer(cs);
                                 System.out.println("S-a adaugat consumatorul " + cs.getId() + " de tip " + sectiuneComanda[1]);
-                                controller.includeComponenta(cs);
                             }
 
                         }
@@ -93,9 +87,9 @@ public class App {
 
             } else if (comanda.startsWith("2")) {
 
-                if (controller.esteInBlackout) {
+                if (controller.isInBlackout()) {
                     System.out.println("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
-                    controller.evenimente.add("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                    controller.addEvent("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
                 } else {
                     String[] sectiuneComanda = comanda.split(" ");
 
@@ -112,9 +106,8 @@ public class App {
                             System.out.println("EROARE: Capacitate invalida");
                         } else {
                             Baterie bt = new Baterie(sectiuneComanda[1], Double.parseDouble(sectiuneComanda[2]));
-                            controller.baterii.add(bt);
+                            controller.addBattery(bt);
                             System.out.println("S-a adaugat bateria " + bt.getId() + " cu capacitatea " + bt.getCapacitateMaxima());
-                            controller.includeComponenta(bt);
                         }
 
                     }
@@ -133,9 +126,9 @@ public class App {
                     System.out.println("EROARE: Factori invalizi");
                 } else {
 
-                    if (controller.esteInBlackout) {
+                    if (controller.isInBlackout()) {
                         System.out.println("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
-                        controller.evenimente.add("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                        controller.addEvent("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
                     } else {
                         controller.simuleazaTick(Double.parseDouble(sectiuneComanda[1]), Double.parseDouble(sectiuneComanda[2]));
                     }
@@ -150,26 +143,17 @@ public class App {
                     continue;
                 }
 
-                boolean idIsValid = false;
-                int cmpIndex = 0;
+                ComponentaRetea cmp = controller.findComponent(sectiuneComanda[1]);
 
-                for (int i = 0; i < controller.componente.size(); i++) {
-                    if (sectiuneComanda[1].equals(controller.componente.get(i).getId())) {
-                        idIsValid = true;
-                        cmpIndex = i;
-                        break;
-                    }
-                }
-
-                if (idIsValid) {
+                if (cmp != null) {
 
                     if (sectiuneComanda[2].equals("true")) {
-                            controller.componente.get(cmpIndex).setStatusOperational(true);
-                            System.out.println("Componenta " + controller.componente.get(cmpIndex).getId() + " este acum operationala.");
+                            cmp.setStatusOperational(true);
+                            System.out.println("Componenta " + cmp.getId() + " este acum operationala.");
 
                     } else if (sectiuneComanda[2].equals("false")) {
-                        controller.componente.get(cmpIndex).setStatusOperational(false);
-                        System.out.println("Componenta " + controller.componente.get(cmpIndex).getId() + " este acum defecta.");
+                        cmp.setStatusOperational(false);
+                        System.out.println("Componenta " + cmp.getId() + " este acum defecta.");
                     } else {
                         System.out.println("EROARE: Status invalid");
                     }
@@ -180,18 +164,18 @@ public class App {
 
             } else if (comanda.startsWith("5")) {
 
-                if (controller.componente.isEmpty()) {
+                if (controller.getComponents().isEmpty()) {
                     System.out.println("Reteaua este goala.");
                 } else {
 
-                    if (!controller.esteInBlackout) {
+                    if (!controller.isInBlackout()) {
                         System.out.println("Stare Retea: STABILA");
-                        for (ComponentaRetea cmp : controller.componente) {
+                        for (ComponentaRetea cmp : controller.getComponents()) {
                             System.out.println(cmp.toString());
                         }
                     } else {
                         System.out.println("Stare Retea: BLACKOUT");
-                        for (ComponentaRetea cmp : controller.componente) {
+                        for (ComponentaRetea cmp : controller.getComponents()) {
                             System.out.println(cmp.toString());
                         }
                     }
@@ -200,10 +184,10 @@ public class App {
 
             } else if (comanda.startsWith("6")) {
 
-                if (controller.evenimente.isEmpty()) {
+                if (controller.getEvents().isEmpty()) {
                     System.out.println("Istoric evenimente gol");
                 } else {
-                    for (String ev : controller.evenimente) {
+                    for (String ev : controller.getEvents()) {
                         System.out.println(ev);
                     }
                 }
@@ -252,7 +236,6 @@ public class App {
 
     // Metoda ce verifica validitatea ID-ului primit
     private static boolean checkId(GridController controller, String[] sectiuneComanda) {
-        boolean idIsValid = true;
         int contorComanda = 0;
 
         if (sectiuneComanda.length == 4) {
@@ -261,15 +244,12 @@ public class App {
             contorComanda = 1;
         }
 
-        for (ComponentaRetea cmp : controller.componente) {
-            if (cmp.getId().equals(sectiuneComanda[contorComanda])) {
-                System.out.println("EROARE: Exista deja o componenta cu id-ul " + cmp.getId());
-                idIsValid = false;
-                break;
-            }
+        if (controller.findComponent(sectiuneComanda[contorComanda]) != null) {
+            System.out.println("EROARE: Exista deja o componenta cu id-ul " + sectiuneComanda[contorComanda]);
+            return false;
         }
 
-        return idIsValid;
+        return true;
     }
 
     public static void main(String[] args) {

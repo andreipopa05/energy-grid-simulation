@@ -30,7 +30,7 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass = 'Tema1.App'
+    mainClass = 'EnergyGrid.App'
 }
 
 tasks.named('test') {

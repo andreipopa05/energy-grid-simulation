@@ -4,4 +4,4 @@ out/
 .idea/
 *.iml
 .DS_Store
-app/src/test/java/Tema1/AppTest.java
+app/src/test/java/*/AppTest.java

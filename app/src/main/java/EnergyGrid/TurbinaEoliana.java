@@ -1,4 +1,4 @@
-package Tema1;
+package EnergyGrid;
 
 import java.text.DecimalFormat;
 
