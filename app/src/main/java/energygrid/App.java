@@ -41,8 +41,8 @@ public class App {
                         boolean idIsValid = checkId(controller, sectiuneComanda);
 
                         if (idIsValid) {
-
-                            if (Integer.parseInt(sectiuneComanda[3]) <= 0) {
+                            Double putere = parseNumar(sectiuneComanda[3]);
+                            if (putere == null || putere <= 0) {
                                 System.out.println("EROARE: Putere invalida");
                             } else {
                                 ProducatorEnergie pr = getPr(sectiuneComanda);
@@ -74,8 +74,8 @@ public class App {
                         boolean idIsValid = checkId(controller, sectiuneComanda);
 
                         if (idIsValid) {
-
-                            if (Integer.parseInt(sectiuneComanda[3]) <= 0) {
+                            Double cerere = parseNumar(sectiuneComanda[3]);
+                            if (cerere == null || cerere <= 0) {
                                 System.out.println("EROARE: Cerere putere invalida");
                             } else {
                                 ConsumatorEnergie cs = getCs(sectiuneComanda);
@@ -107,8 +107,8 @@ public class App {
                     boolean idIsValid = checkId(controller, sectiuneComanda);
 
                     if (idIsValid) {
-
-                        if (Integer.parseInt(sectiuneComanda[2]) <= 0) {
+                        Double capacitate = parseNumar(sectiuneComanda[2]);
+                        if (capacitate == null || capacitate <= 0) {
                             System.out.println("EROARE: Capacitate invalida");
                         } else {
                             Baterie bt = new Baterie(sectiuneComanda[1], Double.parseDouble(sectiuneComanda[2]));
@@ -208,6 +208,16 @@ public class App {
 
         }
 
+    }
+
+    // Intoarce numarul din text sau null daca textul nu e un numar valid
+    private static Double parseNumar(String text) {
+        try {
+            double numar = Double.parseDouble(text);
+            return Double.isFinite(numar) ? numar : null;
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     // Metoda ce construieste producatorul primit
