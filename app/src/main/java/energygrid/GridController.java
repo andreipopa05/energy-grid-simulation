@@ -136,15 +136,12 @@ public class GridController {
     private double decupleazaConsumatori(double deficit) {
         double ramas = deficit;
 
-        for (int i = 0; i < consumatori.size() - 1; i++) {
-            for (int j = i + 1; j < consumatori.size(); j++) {
-                if (consumatori.get(i).getPrioritate() < consumatori.get(j).getPrioritate()) {
-                    Collections.swap(consumatori, i, j);
-                }
-            }
-        }
+        // Sortez o copie a listei dupa prioritate (cea mai mare intai); sortarea
+        // e stabila, deci la prioritate egala ramane ordinea in care au fost adaugati
+        List<ConsumatorEnergie> sortati = new ArrayList<>(consumatori);
+        sortati.sort((a, b) -> Integer.compare(b.getPrioritate(), a.getPrioritate()));
 
-        for (ConsumatorEnergie cons : consumatori) {
+        for (ConsumatorEnergie cons : sortati) {
             if (cons.getPrioritate() > 1 && ramas > 0) {
                 decuplati.add(cons);
                 ramas -= cons.getCerereCurenta();  // Citesc cererea inainte de decuplare
