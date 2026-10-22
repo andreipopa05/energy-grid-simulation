@@ -13,7 +13,8 @@ public abstract class ProducatorEnergie extends ComponentaRetea{
         return this.putereSpecifica;
     }
 
-    public abstract double calculeazaProductie(double factorExtern);
+    // Fiecare producator alege factorul extern care il intereseaza
+    public abstract double calculeazaProductie(double factorSoare, double factorVant);
 
     // Numele producatorului
     protected abstract String getTypeName();

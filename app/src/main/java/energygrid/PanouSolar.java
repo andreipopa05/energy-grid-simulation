@@ -6,11 +6,12 @@ public class PanouSolar extends ProducatorEnergie{
         super(id, putereSpecifica);
     }
 
-    public double calculeazaProductie(double factorExtern) {
+    @Override
+    public double calculeazaProductie(double factorSoare, double factorVant) {
         if (!this.getStatusOperational()) {
             return 0;
         }
-        return factorExtern * this.getPutereSpecifica();
+        return factorSoare * this.getPutereSpecifica();
     }
 
     @Override

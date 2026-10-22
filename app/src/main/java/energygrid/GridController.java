@@ -71,13 +71,7 @@ public class GridController {
         // Calculez productia totala
         double productieTotala = 0;
         for (ProducatorEnergie prod : producatori) {
-            if (prod instanceof PanouSolar) {
-                productieTotala += prod.calculeazaProductie(factorSoare);
-            } else if (prod instanceof TurbinaEoliana) {
-                productieTotala += prod.calculeazaProductie(factorVant);
-            } else {
-                productieTotala += prod.calculeazaProductie(0);
-            }
+            productieTotala += prod.calculeazaProductie(factorSoare, factorVant);
         }
 
         // Calculez cererea totala

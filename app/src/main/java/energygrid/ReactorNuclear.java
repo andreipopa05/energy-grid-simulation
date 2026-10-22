@@ -1,13 +1,13 @@
 package energygrid;
 
-
 public class ReactorNuclear extends ProducatorEnergie{
 
     protected ReactorNuclear(String id, double putereSpecifica) {
         super(id, putereSpecifica);
     }
 
-    public double calculeazaProductie(double factorExtern) {
+    @Override
+    public double calculeazaProductie(double factorSoare, double factorVant) {
         if (!this.getStatusOperational()) {
             return 0;
         }

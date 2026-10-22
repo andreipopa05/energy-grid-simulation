@@ -1,18 +1,18 @@
 package energygrid;
 
-
 public class TurbinaEoliana extends ProducatorEnergie{
 
     protected TurbinaEoliana(String id, double putereSpecifica) {
         super(id, putereSpecifica);
     }
 
-    public double calculeazaProductie(double factorExtern) {
+    @Override
+    public double calculeazaProductie(double factorSoare, double factorVant) {
         if (!this.getStatusOperational()) {
             return 0;
         }
 
-        return factorExtern * this.getPutereSpecifica();
+        return factorVant * this.getPutereSpecifica();
     }
 
     @Override
