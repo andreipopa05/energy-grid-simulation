@@ -1,0 +1,7 @@
+.gradle/
+build/
+out/
+.idea/
+*.iml
+.DS_Store
+app/src/test/java/Tema1/AppTest.java

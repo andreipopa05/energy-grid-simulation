@@ -1,0 +1,279 @@
+package Tema1;
+
+import javax.swing.*;
+import java.io.*;
+import java.sql.SQLOutput;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.text.*;
+
+public class App {
+    private Scanner scanner;
+
+    public App(InputStream input) {
+        this.scanner = new Scanner(input);
+    }
+
+    public void run() {
+
+        GridController controller = new GridController();
+
+        while (scanner.hasNextLine()) {
+            String comanda = scanner.nextLine();
+
+            // Tratarea fiecarei comenzi in parte si verificarea validitatii comenzii
+            if (comanda.startsWith("0")) {
+
+                if (controller.esteInBlackout) {
+                    System.out.println("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                    controller.evenimente.add("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                } else {
+                    String[] sectiuneComanda = comanda.split(" ");
+
+                    if (sectiuneComanda.length < 4) {
+                        System.out.println("EROARE: Format comanda invalid");
+                        continue;
+                    }
+
+                    if (sectiuneComanda[1].equals("solar") || sectiuneComanda[1].equals("turbina") || sectiuneComanda[1].equals("reactor")) {
+                        boolean idIsValid = checkId(controller, sectiuneComanda);
+
+                        if (idIsValid) {
+
+                            if (Integer.parseInt(sectiuneComanda[3]) <= 0) {
+                                System.out.println("EROARE: Putere invalida");
+                            } else {
+                                ProducatorEnergie pr = getPr(sectiuneComanda);
+                                controller.producatori.add(pr);
+                                System.out.println("S-a adaugat producatorul " + pr.getId() + " de tip " + sectiuneComanda[1]);
+                                controller.includeComponenta(pr);
+                            }
+
+                        }
+
+                    } else {
+                        System.out.println("EROARE: Tip producator invalid");
+                    }
+
+                }
+            } else if (comanda.startsWith("1")) {
+
+                if (controller.esteInBlackout) {
+                    System.out.println("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                    controller.evenimente.add("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                } else {
+                    String[] sectiuneComanda = comanda.split(" ");
+
+                    if (sectiuneComanda.length < 4) {
+                        System.out.println("EROARE: Format comanda invalid");
+                        continue;
+                    }
+
+                    if (sectiuneComanda[1].equals("suport_viata") || sectiuneComanda[1].equals("laborator") || sectiuneComanda[1].equals("iluminat")) {
+                        boolean idIsValid = checkId(controller, sectiuneComanda);
+
+                        if (idIsValid) {
+
+                            if (Integer.parseInt(sectiuneComanda[3]) <= 0) {
+                                System.out.println("EROARE: Cerere putere invalida");
+                            } else {
+                                ConsumatorEnergie cs = getCs(sectiuneComanda);
+                                controller.consumatori.add(cs);
+                                System.out.println("S-a adaugat consumatorul " + cs.getId() + " de tip " + sectiuneComanda[1]);
+                                controller.includeComponenta(cs);
+                            }
+
+                        }
+
+                    } else {
+                        System.out.println("EROARE: Tip consumator invalid");
+                    }
+
+                }
+
+            } else if (comanda.startsWith("2")) {
+
+                if (controller.esteInBlackout) {
+                    System.out.println("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                    controller.evenimente.add("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                } else {
+                    String[] sectiuneComanda = comanda.split(" ");
+
+                    if (sectiuneComanda.length < 3) {
+                        System.out.println("EROARE: Format comanda invalid");
+                        continue;
+                    }
+
+                    boolean idIsValid = checkId(controller, sectiuneComanda);
+
+                    if (idIsValid) {
+
+                        if (Integer.parseInt(sectiuneComanda[2]) <= 0) {
+                            System.out.println("EROARE: Capacitate invalida");
+                        } else {
+                            Baterie bt = new Baterie(sectiuneComanda[1], Double.parseDouble(sectiuneComanda[2]));
+                            controller.baterii.add(bt);
+                            System.out.println("S-a adaugat bateria " + bt.getId() + " cu capacitatea " + bt.getCapacitateMaxima());
+                            controller.includeComponenta(bt);
+                        }
+
+                    }
+
+                }
+
+            } else if (comanda.startsWith("3")) {
+                String[] sectiuneComanda = comanda.split(" ");
+
+                if (sectiuneComanda.length < 3) {
+                    System.out.println("EROARE: Format comanda invalid");
+                    continue;
+                }
+
+                if (!sectiuneComanda[1].contains(".") && !sectiuneComanda[2].contains(".")) {
+                    System.out.println("EROARE: Factori invalizi");
+                } else {
+
+                    if (controller.esteInBlackout) {
+                        System.out.println("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                        controller.evenimente.add("EROARE: Reteaua este in BLACKOUT. Simulare oprita.");
+                    } else {
+                        controller.simuleazaTick(Double.parseDouble(sectiuneComanda[1]), Double.parseDouble(sectiuneComanda[2]));
+                    }
+
+                }
+
+            } else if (comanda.startsWith("4")) {
+                String[] sectiuneComanda = comanda.split(" ");
+
+                if (sectiuneComanda.length < 3) {
+                    System.out.println("EROARE: Format comanda invalid");
+                    continue;
+                }
+
+                boolean idIsValid = false;
+                int cmpIndex = 0;
+
+                for (int i = 0; i < controller.componente.size(); i++) {
+                    if (sectiuneComanda[1].equals(controller.componente.get(i).getId())) {
+                        idIsValid = true;
+                        cmpIndex = i;
+                        break;
+                    }
+                }
+
+                if (idIsValid) {
+
+                    if (sectiuneComanda[2].equals("true")) {
+                            controller.componente.get(cmpIndex).setStatusOperational(true);
+                            System.out.println("Componenta " + controller.componente.get(cmpIndex).getId() + " este acum operationala.");
+
+                    } else if (sectiuneComanda[2].equals("false")) {
+                        controller.componente.get(cmpIndex).setStatusOperational(false);
+                        System.out.println("Componenta " + controller.componente.get(cmpIndex).getId() + " este acum defecta.");
+                    } else {
+                        System.out.println("EROARE: Status invalid");
+                    }
+
+                } else {
+                    System.out.println("EROARE: Nu exista componenta cu id-ul " + sectiuneComanda[1]);
+                }
+
+            } else if (comanda.startsWith("5")) {
+
+                if (controller.componente.isEmpty()) {
+                    System.out.println("Reteaua este goala.");
+                } else {
+
+                    if (!controller.esteInBlackout) {
+                        System.out.println("Stare Retea: STABILA");
+                        for (ComponentaRetea cmp : controller.componente) {
+                            System.out.println(cmp.toString());
+                        }
+                    } else {
+                        System.out.println("Stare Retea: BLACKOUT");
+                        for (ComponentaRetea cmp : controller.componente) {
+                            System.out.println(cmp.toString());
+                        }
+                    }
+
+                }
+
+            } else if (comanda.startsWith("6")) {
+
+                if (controller.evenimente.isEmpty()) {
+                    System.out.println("Istoric evenimente gol");
+                } else {
+                    for (String ev : controller.evenimente) {
+                        System.out.println(ev);
+                    }
+                }
+
+            } else if (comanda.startsWith("7")) {
+
+                System.out.println("Simulatorul se inchide.");
+                break;
+            } else {
+                System.out.println("EROARE: Comanda necunoscuta.");
+            }
+
+        }
+
+    }
+
+    // Metoda ce construieste producatorul primit
+    private static ProducatorEnergie getPr(String[] sectiuneComanda) {
+        ProducatorEnergie pr;
+
+        if (sectiuneComanda[1].equals("solar")) {
+            pr = new PanouSolar(sectiuneComanda[2], Double.parseDouble(sectiuneComanda[3]));
+        } else if (sectiuneComanda[1].equals("turbina")) {
+            pr = new TurbinaEoliana(sectiuneComanda[2], Double.parseDouble(sectiuneComanda[3]));
+        } else {
+            pr = new ReactorNuclear(sectiuneComanda[2], Double.parseDouble(sectiuneComanda[3]));
+        }
+
+        return pr;
+    }
+
+    // Metoda ce construieste consumatorul primit
+    private static ConsumatorEnergie getCs(String[] sectiuneComanda) {
+        ConsumatorEnergie cs;
+
+        if (sectiuneComanda[1].equals("suport_viata")) {
+            cs = new SistemSuportViata(sectiuneComanda[2], Double.parseDouble(sectiuneComanda[3]));
+        } else if (sectiuneComanda[1].equals("laborator")) {
+            cs = new LaboratorStiintific(sectiuneComanda[2], Double.parseDouble(sectiuneComanda[3]));
+        } else {
+            cs = new SistemIluminat(sectiuneComanda[2], Double.parseDouble(sectiuneComanda[3]));
+        }
+
+        return cs;
+    }
+
+    // Metoda ce verifica validitatea ID-ului primit
+    private static boolean checkId(GridController controller, String[] sectiuneComanda) {
+        boolean idIsValid = true;
+        int contorComanda = 0;
+
+        if (sectiuneComanda.length == 4) {
+            contorComanda = 2;
+        } else if (sectiuneComanda.length == 3) {
+            contorComanda = 1;
+        }
+
+        for (ComponentaRetea cmp : controller.componente) {
+            if (cmp.getId().equals(sectiuneComanda[contorComanda])) {
+                System.out.println("EROARE: Exista deja o componenta cu id-ul " + cmp.getId());
+                idIsValid = false;
+                break;
+            }
+        }
+
+        return idIsValid;
+    }
+
+    public static void main(String[] args) {
+        App app = new App(System.in);
+        app.run();
+    }
+} 

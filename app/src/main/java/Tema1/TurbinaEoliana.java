@@ -1,0 +1,35 @@
+package Tema1;
+
+import java.text.DecimalFormat;
+
+public class TurbinaEoliana extends ProducatorEnergie{
+
+    protected TurbinaEoliana(String id, double putereSpecifica) {
+        super(id, putereSpecifica);
+    }
+
+    public double calculeazaProductie(double factorExtern) {
+        if (!this.getStatusOperational()) {
+            return 0;
+        }
+
+        return factorExtern * this.getPutereSpecifica();
+    }
+
+    @Override
+    public String toString() {
+        DecimalFormat df = new DecimalFormat("#.00");
+
+        String formatPutere = df.format(this.getPutereSpecifica());
+
+        String detalii = "Producator " + this.getId() + " (TurbinaEoliana) - PutereBaza: " + formatPutere + " - Status: ";
+
+        if (this.getStatusOperational()) {
+            detalii = detalii.concat("Operational");
+        } else {
+            detalii = detalii.concat("Defect");
+        }
+
+        return detalii;
+    }
+}
